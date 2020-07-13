@@ -2,7 +2,17 @@
 
 set -e
 
-ROUTER_ID=`ip -4 -o a | awk '/eth0/ { split($4, a, "/"); print a[1] }'`
+ROUTER_ID=`ip -4 -o a | while read num intf inet addr; do
+    case $intf in
+	# Allow for "eth0", "ens5", "enp0s3" etc.; avoid "lo" and
+	# "docker0".
+	e*)
+	    echo ${addr%/*}
+	    break
+	    ;;
+    esac
+done`
+
 if [ -z "$ROUTER_ID" ]; then
     ROUTER_ID='127.0.0.1'
 fi
